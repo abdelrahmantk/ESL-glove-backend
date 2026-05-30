@@ -1,0 +1,1059 @@
+openapi: 3.0.3
+info:
+  title: ESL Glove Backend API
+  version: 1.0.0
+  description: API documentation generated from the current Express routes and controllers.
+servers:
+  - url: http://localhost:3001
+    description: Local dev server
+  - url: http://localhost:3001/api
+    description: Local dev server (api prefix)
+tags:
+  - name: Languages
+  - name: Models
+  - name: Profile
+  - name: Rooms
+  - name: Submissions
+paths:
+  /api/languages/languages:
+    get:
+      tags:
+        - Languages
+      summary: List languages
+      description: Returns all language records.
+      responses:
+        "200":
+          description: Language list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Language"
+              examples:
+                default:
+                  value:
+                    - lid: 1
+                      language_name: "ASL"
+                      uid: "user-123"
+                    - lid: 2
+                      language_name: "BSL"
+                      uid: "user-456"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /api/languages/languageInfo:
+    get:
+      tags:
+        - Languages
+      summary: Get language info by id
+      description: Requires query param languageId.
+      parameters:
+        - in: query
+          name: languageId
+          required: true
+          description: Language id to fetch.
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: Language details
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Language"
+              examples:
+                default:
+                  value:
+                    - lid: 1
+                      language_name: "ASL"
+                      uid: "user-123"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /api/languages/addLanguage:
+    post:
+      tags:
+        - Languages
+      summary: Add a language
+      description: Required fields: language_name, uid.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddLanguageRequest"
+            examples:
+              default:
+                value:
+                  language_name: "ASL"
+                  uid: "user-123"
+      responses:
+        "200":
+          description: Language created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddLanguageResponse"
+              examples:
+                default:
+                  value:
+                    success: true
+                    message: "Language added successfully"
+                    data:
+                      newLid: 7
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /api/languages/{lid}:
+    delete:
+      tags:
+        - Languages
+      summary: Delete a language
+      description: Deletes a language by id.
+      parameters:
+        - in: path
+          name: lid
+          required: true
+          description: Language id to delete.
+          schema:
+            type: integer
+          example: 7
+      responses:
+        "200":
+          description: Language deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+              examples:
+                default:
+                  value:
+                    message: "Language deleted successfully"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/models/models:
+    get:
+      tags:
+        - Models
+      summary: List models
+      description: Returns all models with their language names.
+      responses:
+        "200":
+          description: Model list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Model"
+              examples:
+                default:
+                  value:
+                    - mid: 10
+                      uid: "user-123"
+                      model_name: "ASL-Base"
+                      model_file: "1699999999_ASL-Base.pkl"
+                      language_name: "ASL"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /api/models/brief/{modelId}:
+    get:
+      tags:
+        - Models
+      summary: Get model brief
+      description: Fetches model name and language for a model id.
+      parameters:
+        - in: path
+          name: modelId
+          required: true
+          description: Model id to fetch.
+          schema:
+            type: integer
+          example: 10
+      responses:
+        "200":
+          description: Model brief
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ModelBrief"
+              examples:
+                default:
+                  value:
+                    - lid: 1
+                      language_name: "ASL"
+                      model_name: "ASL-Base"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /api/models/addModel:
+    post:
+      tags:
+        - Models
+      summary: Upload a model
+      description: Required fields: modelName, lid, fileContent. Optional: userId, base_mid.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddModelRequest"
+            examples:
+              default:
+                value:
+                  userId: "user-123"
+                  lid: 1
+                  base_mid: 0
+                  modelName: "ASL-Base"
+                  fileContent: "BASE64_ENCODED_MODEL_BYTES"
+      responses:
+        "200":
+          description: Model uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddModelResponse"
+              examples:
+                default:
+                  value:
+                    success: true
+                    message: "Model uploaded successfully"
+                    data:
+                      newMid: 12
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /api/models/{mid}:
+    delete:
+      tags:
+        - Models
+      summary: Delete a model
+      description: Deletes a model by id. Requires model_file in the request body.
+      parameters:
+        - in: path
+          name: mid
+          required: true
+          description: Model id to delete.
+          schema:
+            type: integer
+          example: 12
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteModelRequest"
+            examples:
+              default:
+                value:
+                  model_file: "1699999999_ASL-Base.pkl"
+      responses:
+        "200":
+          description: Model deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+              examples:
+                default:
+                  value:
+                    message: "Model deleted successfully"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /api/models/train:
+    post:
+      tags:
+        - Models
+      summary: Initialize training metadata
+      description: Required fields: absolutePath, modelName. Optional: userId.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrainModelRequest"
+            examples:
+              default:
+                value:
+                  absolutePath: "C:\\data\\asl"
+                  modelName: "ASL-Base"
+                  userId: "user-123"
+      responses:
+        "200":
+          description: Training initialized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainModelResponse"
+              examples:
+                default:
+                  value:
+                    message: "Training metadata initialized successfully"
+                    directory: "C:\\data\\models\\ASL-Base_1700000000"
+                    fileName: "ASL-Base.pkl"
+                    savedData:
+                      language: "ASL"
+                      total_signs: 120
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /api/models/fineTune:
+    post:
+      tags:
+        - Models
+      summary: Initialize fine-tuning metadata
+      description: Required fields: absolutePath, modelName. Optional: base_mid, userId.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FineTuneModelRequest"
+            examples:
+              default:
+                value:
+                  absolutePath: "C:\\data\\asl"
+                  modelName: "ASL-FineTune"
+                  base_mid: 10
+                  userId: "user-123"
+      responses:
+        "200":
+          description: Fine-tune initialized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainModelResponse"
+              examples:
+                default:
+                  value:
+                    message: "Training metadata initialized successfully"
+                    directory: "C:\\data\\models\\ASL-FineTune_1700000000"
+                    fileName: "ASL-FineTune.pkl"
+                    savedData:
+                      language: "ASL"
+                      total_signs: 140
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/profile/info:
+    get:
+      tags:
+        - Profile
+      summary: Get profile info
+      description: Requires query param userId.
+      parameters:
+        - in: query
+          name: userId
+          required: true
+          description: Profile user id to fetch.
+          schema:
+            type: string
+          example: "user-123"
+      responses:
+        "200":
+          description: Profile info
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProfileInfo"
+              examples:
+                default:
+                  value:
+                    - username: "jdoe"
+                      initials: "JD"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/rooms/create:
+    post:
+      tags:
+        - Rooms
+      summary: Create a room
+      description: Required fields: userId, lid.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRoomRequest"
+            examples:
+              default:
+                value:
+                  userId: "user-123"
+                  lid: 1
+      responses:
+        "201":
+          description: Room created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateRoomResponse"
+              examples:
+                default:
+                  value:
+                    success: true
+                    roomId: 42
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /api/rooms/close:
+    post:
+      tags:
+        - Rooms
+      summary: Close a room
+      description: Required fields: roomId, userId.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CloseRoomRequest"
+            examples:
+              default:
+                value:
+                  roomId: 42
+                  userId: "user-123"
+      responses:
+        "200":
+          description: Room closed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+              examples:
+                default:
+                  value:
+                    success: true
+                    message: "Room closed."
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /api/rooms/{roomId}:
+    get:
+      tags:
+        - Rooms
+      summary: Get room info
+      description: Returns active status and language id for a room.
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          description: Room id to fetch.
+          schema:
+            type: integer
+          example: 42
+      responses:
+        "200":
+          description: Room info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomInfoResponse"
+              examples:
+                default:
+                  value:
+                    success: true
+                    info:
+                      is_active: true
+                      lid: 1
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/submissions/available:
+    get:
+      tags:
+        - Submissions
+      summary: Get submissions available for a model
+      description: Requires query params languageId and modelId.
+      parameters:
+        - in: query
+          name: languageId
+          required: true
+          description: Language id to filter submissions.
+          schema:
+            type: integer
+          example: 1
+        - in: query
+          name: modelId
+          required: true
+          description: Model id to exclude already-linked submissions.
+          schema:
+            type: integer
+          example: 10
+      responses:
+        "200":
+          description: Submissions available for model
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+              examples:
+                default:
+                  value:
+                    - sid: 21
+                      submission_name: "lesson_01"
+                      uid: "user-123"
+                      readings_file: "1699999999_lesson_01.json"
+                      signs:
+                        - "Hello"
+                        - "Bye"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /api/submissions/language:
+    get:
+      tags:
+        - Submissions
+      summary: Get submissions for a language
+      description: Requires query param languageId.
+      parameters:
+        - in: query
+          name: languageId
+          required: true
+          description: Language id to filter submissions.
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: Submissions for language
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+              examples:
+                default:
+                  value:
+                    - sid: 22
+                      submission_name: "lesson_02"
+                      uid: "user-123"
+                      readings_file: "1699999999_lesson_02.json"
+                      signs:
+                        - "Thanks"
+                        - "Please"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /api/submissions/download:
+    get:
+      tags:
+        - Submissions
+      summary: Download submissions by id
+      description: For a single id returns JSON, for multiple ids returns a ZIP archive.
+      parameters:
+        - in: query
+          name: ids
+          required: true
+          schema:
+            type: string
+          description: Comma-separated submission ids, e.g. "1,2,3"
+          example: "1,2,3"
+      responses:
+        "200":
+          description: File download (single JSON or ZIP)
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+              examples:
+                single:
+                  summary: Single JSON file
+                  value: "<binary>"
+            application/zip:
+              schema:
+                type: string
+                format: binary
+              examples:
+                multiple:
+                  summary: Zip archive
+                  value: "<binary>"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /api/submissions/addSubmission:
+    post:
+      tags:
+        - Submissions
+      summary: Upload a submission
+      description: Required fields: newName, userId, lid, fileContent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddSubmissionRequest"
+            examples:
+              default:
+                value:
+                  newName: "lesson_01"
+                  userId: "user-123"
+                  lid: 1
+                  fileContent:
+                    metadata:
+                      language: "ASL"
+                      total_signs: 2
+                    readings:
+                      Hello:
+                        data:
+                          - 0.1
+                          - 0.2
+                          - 0.3
+                      Bye:
+                        data:
+                          - 0.4
+                          - 0.5
+      responses:
+        "200":
+          description: Submission uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddSubmissionResponse"
+              examples:
+                default:
+                  value:
+                    success: true
+                    message: "Submissions uploaded successfully"
+                    data:
+                      newSid: 99
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /api/submissions/merge:
+    post:
+      tags:
+        - Submissions
+      summary: Merge submissions
+      description: Required fields: sids (2+), newName, userId, lid.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MergeSubmissionsRequest"
+            examples:
+              default:
+                value:
+                  sids:
+                    - 21
+                    - 22
+                  newName: "merged_lesson_01"
+                  userId: "user-123"
+                  lid: 1
+      responses:
+        "200":
+          description: Submissions merged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddSubmissionResponse"
+              examples:
+                default:
+                  value:
+                    success: true
+                    message: "Submissions merged successfully"
+                    data:
+                      newSid: 100
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /api/submissions/{sid}:
+    delete:
+      tags:
+        - Submissions
+      summary: Delete a submission
+      description: Deletes a submission by id. Requires readings_file in the request body.
+      parameters:
+        - in: path
+          name: sid
+          required: true
+          description: Submission id to delete.
+          schema:
+            type: integer
+          example: 99
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteSubmissionRequest"
+            examples:
+              default:
+                value:
+                  readings_file: "1699999999_lesson_01.json"
+      responses:
+        "200":
+          description: Submission deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+              examples:
+                default:
+                  value:
+                    message: "Submission deleted successfully"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+components:
+  responses:
+    ServerError:
+      description: Server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            default:
+              value:
+                error: "Server error"
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            default:
+              value:
+                error: "Validation Error"
+                message: "Missing required fields"
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            default:
+              value:
+                error: "Not found"
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+
+    Language:
+      type: object
+      properties:
+        lid:
+          type: integer
+        language_name:
+          type: string
+        uid:
+          type: string
+
+    Model:
+      type: object
+      properties:
+        mid:
+          type: integer
+        uid:
+          type: string
+        model_name:
+          type: string
+        model_file:
+          type: string
+        language_name:
+          type: string
+
+    ModelBrief:
+      type: object
+      properties:
+        lid:
+          type: integer
+        language_name:
+          type: string
+        model_name:
+          type: string
+
+    ProfileInfo:
+      type: object
+      properties:
+        username:
+          type: string
+        initials:
+          type: string
+
+    RoomInfo:
+      type: object
+      properties:
+        is_active:
+          type: boolean
+        lid:
+          type: integer
+
+    Submission:
+      type: object
+      properties:
+        sid:
+          type: integer
+        submission_name:
+          type: string
+        uid:
+          type: string
+        readings_file:
+          type: string
+        signs:
+          type: array
+          items:
+            type: string
+
+    AddLanguageRequest:
+      type: object
+      properties:
+        language_name:
+          type: string
+        uid:
+          type: string
+      required:
+        - language_name
+        - uid
+
+    AddLanguageResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            newLid:
+              type: integer
+
+    AddModelRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+        lid:
+          type: integer
+        base_mid:
+          type: integer
+        modelName:
+          type: string
+        fileContent:
+          type: string
+          description: Base64-encoded file content for the model.
+      required:
+        - lid
+        - modelName
+        - fileContent
+
+    AddModelResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            newMid:
+              type: integer
+
+    DeleteModelRequest:
+      type: object
+      properties:
+        model_file:
+          type: string
+      required:
+        - model_file
+
+    TrainModelRequest:
+      type: object
+      properties:
+        absolutePath:
+          type: string
+        modelName:
+          type: string
+        userId:
+          type: string
+      required:
+        - absolutePath
+        - modelName
+
+    FineTuneModelRequest:
+      type: object
+      properties:
+        absolutePath:
+          type: string
+        modelName:
+          type: string
+        base_mid:
+          type: integer
+        userId:
+          type: string
+      required:
+        - absolutePath
+        - modelName
+
+    TrainModelResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        directory:
+          type: string
+        fileName:
+          type: string
+        savedData:
+          type: object
+          additionalProperties: true
+
+    CreateRoomRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+        lid:
+          type: integer
+      required:
+        - userId
+        - lid
+
+    CreateRoomResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        roomId:
+          type: integer
+
+    CloseRoomRequest:
+      type: object
+      properties:
+        roomId:
+          type: integer
+        userId:
+          type: string
+      required:
+        - roomId
+        - userId
+
+    RoomInfoResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        info:
+          $ref: "#/components/schemas/RoomInfo"
+
+    AddSubmissionRequest:
+      type: object
+      properties:
+        newName:
+          type: string
+        userId:
+          type: string
+        lid:
+          type: integer
+        fileContent:
+          type: object
+          description: JSON payload with metadata and readings
+          properties:
+            metadata:
+              type: object
+              additionalProperties: true
+            readings:
+              type: object
+              additionalProperties: true
+      required:
+        - newName
+        - userId
+        - lid
+        - fileContent
+
+    AddSubmissionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            newSid:
+              type: integer
+
+    MergeSubmissionsRequest:
+      type: object
+      properties:
+        sids:
+          type: array
+          items:
+            type: integer
+          minItems: 2
+        newName:
+          type: string
+        userId:
+          type: string
+        lid:
+          type: integer
+      required:
+        - sids
+        - newName
+        - userId
+        - lid
+
+    DeleteSubmissionRequest:
+      type: object
+      properties:
+        readings_file:
+          type: string
+      required:
+        - readings_file
+
+    DeleteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    SuccessMessage:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string

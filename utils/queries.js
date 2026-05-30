@@ -118,6 +118,12 @@ JOIN languages l ON m.lid = l.lid
 WHERE m.mid = $1
 `;
 
+exports.GET_MODEL_FILE_BY_ID = `
+  SELECT model_file
+  FROM models
+  WHERE mid = $1
+`;
+
 exports.ADD_MODEL = `
     INSERT INTO "models" ("uid", "lid", "base_mid", "model_name", "model_file")
     VALUES ($1, $2, $3, $4, $5)
@@ -128,6 +134,7 @@ exports.GET_MODELs = `
 SELECT m.mid AS mid, m.uid AS uid, m.model_name AS model_name, m.model_file AS model_file, l.language_name AS language_name
 FROM models m
 JOIN languages l ON m.lid = l.lid
+WHERE ($1::int IS NULL OR m.lid = $1)
 `;
 
 exports.DELETE_MODEL = `
@@ -146,7 +153,7 @@ WHERE id = $1
 //Room-related SQL queries
 
 exports.CREATE_ROOM = `
-    INSERT INTO rooms ("created_by", "lid") 
+    INSERT INTO rooms ("uid", "lid") 
     VALUES ($1, $2) 
     RETURNING "rid";
 `;
@@ -154,7 +161,7 @@ exports.CREATE_ROOM = `
 exports.CLOSE_ROOM = `
     UPDATE rooms 
     SET "is_active" = false 
-    WHERE "rid" = $1 AND "created_by" = $2;
+    WHERE "rid" = $1 AND "uid" = $2;
 `;
 
 exports.GET_ROOM_STATUS = `

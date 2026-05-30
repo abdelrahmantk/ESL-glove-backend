@@ -1,9 +1,10 @@
 const supabase = require('../config/db');
 const modelsService = require("../services/modelsService");
 const { spawn } = require('child_process');
-
+const supabaseStorageClient = require('../config/supabase')
 const path = require('path');
 const fs = require('fs');
+const axios = require('axios');
 
 // Object to store active training sessions temporarily
 global.activeTrainings = global.activeTrainings || {};
@@ -185,10 +186,30 @@ exports.deleteModel = async (req, res) => {
 exports.getModels = async (req, res) => {
 
   try {
-    const models = await modelsService.getModels();
+        if (!req.params.lid) {
+        const models = await modelsService.getModels();
+        res.json(models);
+    }
+    const { lid } = req.params;
+    const models = await modelsService.getModels(lid);
     res.json(models);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
   }
+};
+
+exports.getModelFile = async (req, res) => {
+  const { mid } = req.params;
+  if (!mid) return res.status(400).json({ error: 'Missing mid' });
+
+  const model = await modelsService.getModelFileById(mid);
+  if (!model?.model_file) return res.status(404).json({ error: 'Model file not found' });
+
+  const { data } = supabaseStorageClient.storage.from('models').getPublicUrl(model.model_file);
+  const streamResp = await axios.get(data.publicUrl, { responseType: 'stream' });
+
+  res.setHeader('Content-Type', streamResp.headers['content-type'] || 'application/octet-stream');
+  res.setHeader('Content-Disposition', `attachment; filename="${model.model_file}"`);
+  streamResp.data.pipe(res);
 };

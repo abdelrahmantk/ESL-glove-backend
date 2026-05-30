@@ -6,7 +6,8 @@ const modelController = require('../controllers/modelsController');
 router.post('/train', modelController.initializeTrainingSession);
 router.post('/fineTune', modelController.fineTune);
 router.get('/brief/:modelId', modelController.getModelBrief);
-router.get("/models", modelController.getModels);
+router.get("/models/:lid", modelController.getModels);
+router.get("/models/download/:mid",modelController.getModelFile)
 router.post("/addModel",modelController.addModel);
 router.delete("/:mid", modelController.deleteModel);
 

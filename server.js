@@ -2,6 +2,9 @@ const express = require("express");
 const cors = require("cors");
 const http = require('http');
 const { Server } = require('socket.io');
+const path = require("path");
+const YAML = require("yamljs");
+const swaggerUi = require("swagger-ui-express");
 require("dotenv").config();
 
 const app = express();
@@ -53,7 +56,9 @@ const profileRoutes = require("./routes/profileRoutes");
 const languageRoutes = require("./routes/languageRoutes");
 const roomRoutes = require("./routes/roomsRoutes");
 
-
+const openapiPath = path.join(__dirname, "openapi.yaml");
+const openapiDoc = YAML.load(openapiPath);
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapiDoc));
 
 app.use("/api/submissions", submissionsRoutes);
 app.use("/api/models", modelsRoutes);
