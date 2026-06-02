@@ -11,23 +11,13 @@ const app = express();
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
-// 1. Make sure CORS allows your frontend
-app.use(cors({
-    origin: FRONTEND_URL,
-    methods: ["GET", "POST", "DELETE"]
-}));
+app.use(cors({origin: FRONTEND_URL, methods: ["GET", "POST", "DELETE"]}));
 
 app.use(express.json());
 
 const server = http.createServer(app);
 
-// 3. Initialize Socket.io with CORS rules matching your frontend
-const io = new Server(server, {
-    cors: {
-        origin: FRONTEND_URL, 
-        methods: ["GET", "POST"]
-    }
-});
+const io = new Server(server, {cors: {origin: FRONTEND_URL, methods: ["GET", "POST"]}});
 
 app.set('socketio', io);
 
